@@ -1,12 +1,12 @@
 import os
-import random
 import re
 import cv2
+import numpy as np
 
 
-def pad_image(img, size=(500, 500)):
-    diff_x = size[1] - img.shape[1]
-    diff_y = size[0] - img.shape[0]
+def pad_image(img):
+    diff_x = 500 - img.shape[1]
+    diff_y = 500 - img.shape[0]
 
     if diff_x < 0 or diff_y < 0:
         raise Exception("Invalid image size for padding.")
@@ -20,26 +20,47 @@ def pad_image(img, size=(500, 500)):
     return cv2.copyMakeBorder(img, top_padding, bottom_padding, left_padding, right_padding, cv2.BORDER_CONSTANT)
 
 
-def get_data():
-    data = []
+def process_data():
     for root, dirs, files in os.walk('data/data'):
         if re.match('^data/data/[0-9]+$', root) is not None:
             label = int(root.split('/')[2])
             for file in files:
                 directory = root + '/' + file
-                img = cv2.imread(directory)
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                img = pad_image(img)
-                data.append((img, label, directory))
-    return data
+
+                img = cv2.imread(directory, cv2.IMREAD_GRAYSCALE)
+
+                if img is not None:
+                    img = pad_image(img)
+
+                    os.system('mkdir -p processed_data/data/%d' % label)
+                    cv2.imwrite('processed_data/data/%d/%s' % (label, file), cv2.resize(img, (200, 200)))
 
 
-def get_train_test_data(train_ratio=0.7, data=None):
-    if data is None:
-        data = get_data()
-    size = len(data)
-    random.shuffle(data)
+def get_data():
+    x_data = []
+    y_data = []
+    for root, dirs, files in os.walk('processed_data/data'):
+        if re.match('^processed_data/data/[0-9]+$', root) is not None:
+            label = int(root.split('/')[2])
+            for file in files:
+                directory = root + '/' + file
 
-    slice_idx = int(size * train_ratio)
+                img = cv2.imread(directory, cv2.IMREAD_GRAYSCALE)
 
-    return data[:slice_idx], data[slice_idx:]
+                if img is not None:
+                    x = np.reshape(img, 200 * 200)
+                    x = np.ndarray.tolist(x)
+
+                    y_true = [0] * 7
+                    y_true[label - 1] = 1
+
+                    x_data.append(x)
+                    y_data.append(y_true)
+
+    return np.array(x_data), np.array(y_data)
+
+
+# %%--
+
+# process_data()
+# get_data()
