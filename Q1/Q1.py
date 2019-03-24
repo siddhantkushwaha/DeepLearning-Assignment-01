@@ -108,6 +108,7 @@ def train(epochs, learning_rate, threshold):
             W1 = W1 - learning_rate * Delta_W1
             W2 = W2 - learning_rate * Delta_W2
 
+        # uncomment the below two lines to see the plot
         # if 0 == epoch % 100:
         #     plot()
 
