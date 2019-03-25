@@ -3,6 +3,8 @@ import re
 import cv2
 import numpy as np
 
+size = 300
+
 
 def pad_image(img):
     diff_x = 500 - img.shape[1]
@@ -27,18 +29,17 @@ def process_data():
             for file in files:
                 directory = root + '/' + file
 
-                img = cv2.imread(directory, cv2.IMREAD_GRAYSCALE)
+                img = cv2.imread(directory)
 
                 if img is not None:
                     img = pad_image(img)
 
                     os.system('mkdir -p processed_data/data/%d' % label)
-                    cv2.imwrite('processed_data/data/%d/%s' % (label, file), cv2.resize(img, (200, 200)))
+                    cv2.imwrite('processed_data/data/%d/%s' % (label, file), cv2.resize(img, (size, size)))
 
 
 def get_data():
-    x_data = []
-    y_data = []
+    row = []
     for root, dirs, files in os.walk('processed_data/data'):
         if re.match('^processed_data/data/[0-9]+$', root) is not None:
             label = int(root.split('/')[2])
@@ -48,19 +49,17 @@ def get_data():
                 img = cv2.imread(directory, cv2.IMREAD_GRAYSCALE)
 
                 if img is not None:
-                    x = np.reshape(img, 200 * 200)
-                    x = np.ndarray.tolist(x)
+                    x = np.reshape(img, size * size)
 
-                    y_true = [0] * 7
+                    y_true = np.zeros(7, dtype=float)
                     y_true[label - 1] = 1
 
-                    x_data.append(x)
-                    y_data.append(y_true)
+                    row.append(np.ndarray.tolist(np.concatenate((x, y_true))))
 
-    return np.array(x_data), np.array(y_data)
+    return np.array(row)
 
 
 # %%--
 
-# process_data()
-# get_data()
+process_data()
+ds = get_data()
