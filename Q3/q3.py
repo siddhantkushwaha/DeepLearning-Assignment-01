@@ -7,11 +7,11 @@ import tensorflow as tf
 
 path = 'A1-Q3_Dataset/mrdata.tsv'
 
-# %%
+# %% read the necessary columns from the .tsv file
 
 data = pd.read_csv(path, sep='\t')[['Phrase', 'Sentiment']]
 
-# %%
+# %% tokenize the most frequent 2500 words, get Y values as one-hot encodings
 
 tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=2500, lower=True, split=' ')
 tokenizer.fit_on_texts(data['Phrase'].values)
@@ -21,12 +21,13 @@ X = tf.keras.preprocessing.sequence.pad_sequences(X)
 
 Y = pd.get_dummies(data['Sentiment'].values).values
 
-# %%
+# %% train-test split randomly with sk-learn
 
 X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y, test_size=0.20)
 
-# %%
+# %% build the model
 
+# hyper-params
 embed_dim = 128
 lstm_out = 196
 batch_size = 32
@@ -43,8 +44,7 @@ print(model.summary())
 model.fit(X_train, Y_train, batch_size=batch_size, epochs=1, verbose=1)
 
 # Sample output ->
-# 124848/124848 [==============================] - 1465s 12ms/sample - loss: 1.0198 - acc: 0.5958
-# <tensorflow.python.keras.callbacks.History at 0x7f53ade52ef0>
+# 124848/124848 [==============================] - 513s 4ms/sample - loss: 1.0040 - acc: 0.6019
 
 # %%
 
@@ -53,6 +53,6 @@ print("Score: %.2f" % score)
 print("Validation Accuracy: %.2f" % acc)
 
 # Sample output ->
-# 31212/31212 [==============================] - 54s 2ms/sample - loss: 0.9431 - acc: 0.6267
+# 31212/31212 [==============================] - 53s 2ms/sample - loss: 0.9363 - acc: 0.6288
 # Score: 0.94
 # Validation Accuracy: 0.63

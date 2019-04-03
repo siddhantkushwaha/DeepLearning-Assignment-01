@@ -135,16 +135,18 @@ x_image = tf.reshape(X, [-1, image_size, image_size, 3])
 
 # %% build the network
 
-convo1 = convolutional_layer(x_image, shape=[5, 5, 3, 8])
+convo1 = convolutional_layer(x_image, shape=[3, 3, 3, 64])
 convo1_pooling = max_pool_2by2(convo1)
 
-convo2 = convolutional_layer(convo1_pooling, shape=[5, 5, 8, 16])
+convo2 = convolutional_layer(convo1_pooling, shape=[3, 3, 64, 128])
 convo2_pooling = max_pool_2by2(convo2)
 
-convo2_flat = tf.reshape(convo2_pooling, shape=[-1, (image_size // 4) * (image_size // 4) * 16])
-full_layer_one = tf.nn.relu(normal_full_layer(convo2_flat, 512))
+convo3 = convolutional_layer(convo2_pooling, shape=[3, 3, 128, 256])
+convo3_pooling = max_pool_2by2(convo3)
 
-y_pred = normal_full_layer(full_layer_one, 7)
+convo2_flat = tf.reshape(convo3_pooling, shape=[-1, (image_size // 8) * (image_size // 8) * 256])
+
+y_pred = normal_full_layer(convo2_flat, 7)
 
 # %% define the training
 
@@ -154,7 +156,7 @@ train = optimizer.minimize(cross_entropy)
 
 # %% train
 
-steps = 5000
+steps = 500
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     for i in range(steps):
